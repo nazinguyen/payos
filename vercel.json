@@ -8,11 +8,22 @@
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "index.js"
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "buildCommand": "npm install",
+  "outputDirectory": "public"
+}
 }

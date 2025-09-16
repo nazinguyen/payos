@@ -1,9 +1,14 @@
 const crypto = require('crypto');
 const moment = require('moment');
+const Bill = require('../models/billSchema');
 
 const VNPayController = {
     createPayment: async (req, res) => {
         try {
+            if (!process.env.VNPAY_TMN_CODE || !process.env.VNPAY_HASH_SECRET || !process.env.VNPAY_URL) {
+                throw new Error('Missing VNPay configuration');
+            }
+
             const ipAddr = req.headers['x-forwarded-for'] ||
                 req.connection.remoteAddress ||
                 req.socket.remoteAddress ||
