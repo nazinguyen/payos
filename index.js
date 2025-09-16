@@ -8,6 +8,7 @@ const { securityMiddleware } = require('./middleware/security');
 // Import routes
 const paymentRoute = require('./routes/paymentRoute');
 const paypalRoute = require('./routes/paypalRoute');
+const vnpayRoute = require('./routes/vnpayRoute');
 const cartRoute = require('./routes/cartRoute');
 
 // Load environment variables
