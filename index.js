@@ -40,14 +40,27 @@ const payos = new PayOS(
 );
 
 // Database Connection
-connectDB()
-    .then(() => {
+const startServer = async () => {
+    try {
+        await connectDB();
         console.log('Database connection established');
-    })
-    .catch((err) => {
-        console.error('Database connection error:', err);
-        process.exit(1);
-    });
+
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        // Don't exit process on Vercel
+        if (process.env.VERCEL_ENV) {
+            console.error('Server failed to start on Vercel');
+        } else {
+            process.exit(1);
+        }
+    }
+};
+
+startServer();
 
 // Routes
 app.use('/api', paymentRoute);
