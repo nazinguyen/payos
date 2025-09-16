@@ -1,22 +1,84 @@
-const paymentRoute = require('./routes/paymentRoute');
 const express = require('express');
-// const Product = require('./models/productSchema');
-const app = express();
-const mongoose = require('./setupdb');
 const cookieParser = require('cookie-parser');
-const Bill = require('./models/billSchema');
-const PayOS = require("@payos/node");
+const PayOS = require('@payos/node');
+const path = require('path');
+const connectDB = require('./setupdb');
+const { securityMiddleware } = require('./middleware/security');
 
+// Import routes
+const paymentRoute = require('./routes/paymentRoute');
+const paypalRoute = require('./routes/paypalRoute');
+const cartRoute = require('./routes/cartRoute');
+
+// Load environment variables
 require('dotenv').config();
-const payos = new PayOS(process.env.CLIENT_ID, process.env.API_KEY, process.env.CHECKSUM_KEY);
-// use static : assets folder
-app.use(express.static('assets'));
-//use express json
+
+const app = express();
+
+// Security Middleware
+app.use(securityMiddleware);
+
+// Basic Middleware
 app.use(express.json());
-// use cookie
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-// api
+
+// Static Files
+app.use(express.static('public'));
+app.use(express.static('assets'));
+
+// View Engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Initialize PayOS
+const payos = new PayOS(
+    process.env.CLIENT_ID,
+    process.env.API_KEY,
+    process.env.CHECKSUM_KEY
+);
+
+// Database Connection
+connectDB()
+    .then(() => {
+        console.log('Database connection established');
+    })
+    .catch((err) => {
+        console.error('Database connection error:', err);
+        process.exit(1);
+    });
+
+// Routes
 app.use('/api', paymentRoute);
+app.use('/api/paypal', paypalRoute);
+app.use('/cart', cartRoute);
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).json({
+        error: {
+            message: err.message || 'Internal Server Error',
+            status: err.status || 500
+        }
+    });
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).render('pages/error', {
+        error: {
+            message: 'Page not found',
+            status: 404
+        }
+    });
+});
+
+// Start Server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 app.get('/return', async(req, res) => {
   const { code, id, cancel, status, orderCode } = req.query;
   const test = await payos.getPaymentLinkInformation(orderCode);
