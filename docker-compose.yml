@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Node.js service
+  nodejs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    volumes:
+      - .:/usr/src/app
+    environment:
+      CLIENT_ID: "d2f9f30b-f234-4d6f-a5a2-fa7ad3808e09"
+      API_KEY: "86213e72-f768-4f44-989e-451044ee469e"
+      CHECKSUM_KEY: "4afbea8e303fd4ee7af96cdc39da6476936ed8caacc002e3d504b79531a99553"
+      DB: "mongodb://mongo:27017/test"
+      PORT: "3000"
+    command: npm run start
+  # MongoDB service
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../partials/head', {title: 'Home | Toan Nguyen BookStore' }); %>
+    <style>
+      /* Adjust main content padding to compensate for fixed header */
+      main {
+        padding-top: 100px;
+        /* Adjust this value to match the height of your header */
+        padding-bottom: 80px;
+        /* Adjust this value to match the height of your footer */
+      }
+    </style>
+    <script>
+      // Function to set a cookie with the cart data
+      function setCartCookie(cartData) {
+        document.cookie = `cart=${JSON.stringify(cartData)}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+      }
+
+      // Function to get the cart data from the cookie
+      function getCartCookie() {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('cart='));
+        return cookieValue ? JSON.parse(cookieValue.split('=')[1]) : [];
+      }
+
+      // jQuery document ready function
+      $(document).ready(function () {
+        // jQuery event handling for click event on "Thêm vào giỏ hàng" button
+        $('#addBook').click(function (event) {
+          // Define cart data (example)
+          const cartData = {
+            productId: '123',
+            productName: 'Bí mật của may mắn',
+            amount: 10000,
+            quantity: 1
+            // Add more properties as needed
+          };
+
+          // Get existing cart data from the cookie
+          const existingCart = getCartCookie();
+
+          // Check if the product is already in the cart
+          const existingProductIndex = existingCart.findIndex(item => item.productId === cartData.productId);
+
+          if (existingProductIndex !== -1) {
+            // If the product is already in the cart, increment the quantity
+
+            existingCart[existingProductIndex].quantity++;
+            console.log(existingCart[existingProductIndex]);
+          } else {
+            // If the product is not in the cart, add it with a quantity of 1
+            existingCart.push(cartData);
+          }
+
+          // Save the updated cart data to the cookie
+          setCartCookie(existingCart);
+
+          // Optionally, display a confirmation message to the user
+          alert('Sản phẩm đã được thêm vào giỏ hàng.');
+
+          // Prevent the default action of the button (e.g., form submission)
+          event.preventDefault();
+        });
+        // console.log(items);
+        $('#buy').on('click', function () {
+          $.ajax({
+            url: '/api/payment', // Specify the URL for the POST request
+            method: 'POST', // Set the HTTP method to POST
+            contentType: 'application/json',
+            data: JSON.stringify({
+              description: 'Test - caso interview',
+              items: [{ productId: '123', quantity: 1 }], // [{productId: item.productId, quantity: item.quantity}]
+              buyerName: 'elliSzAt',
+              buyerEmail: 'elliszat@gmail.com',
+              buyerPhone: '0948959024',
+              buyerAddress: 'Linh Trung, Thu Duc'
+            }),
+            success: function (response) {
+              // Handle the successful response here
+              window.open(response.checkoutUrl, '_blank');
+              // console.log('Success:', response);
+            },
+            error: function (xhr, status, error) {
+              // Handle errors here
+              alert('have error when sending request');
+              console.error('Error:', error);
+            }
+          });
+        })
+      });
+    </script>
+
+</head>
+
+<body class="container">
+
+  <header class="fixed top-0 left-0 w-full bg-white z-50 shadow">
+    <%- include('../partials/header'); %>
+  </header>
+
+  <main class="pb-20">
+    <div class="jumbotron">
+      <div class="max-w-sm rounded-md overflow-hidden shadow-lg hover:bg-[#f1f1f1] hover:border-2 ml-3 p-2">
+        <img class="w-[100px] h-[200px] mx-auto" src="/ebook1.png" alt="Sunset in the mountains">
+        <div class="px-6 py-4">
+          <div class="font-bold text-xl mb-2">Bí mật của may mắn</div>
+          <p class="text-gray-700 text-base">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus quia, nulla! Maiores et perferendis
+            eaque, exercitationem praesentium nihil.
+          </p>
+        </div>
+        <div class="space-x-4 flex justify-center">
+          <button id="buy"
+            class="border-[2px] rounded-md border-[#000] p-2 bg-green-400 hover:bg-green-600 active:bg-green-500">Mua
+            Sách</button>
+          <button id="addBook"
+            class="border-[2px] rounded-md  border-[#000] p-2 bg-yellow-400 hover:bg-yellow-600 active:bg-yellow-500">Thêm
+            vào giỏ hàng</button>
+        </div>
+        <div class="px-6 pt-4 pb-2">
+          <span
+            class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#photography</span>
+          <span
+            class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#travel</span>
+          <span
+            class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">#winter</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="w-full bg-gray-800 text-white py-4">
+    <%- include('../partials/footer'); %>
+  </footer>
+
+</body>
+
+</html>

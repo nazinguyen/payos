@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head', {title: 'Bill | Toan Nguyen BookStore' }); %>
+        <style>
+            /* Adjust main content padding to compensate for fixed header */
+            main {
+                padding-top: 100px;
+                /* Adjust this value to match the height of your header */
+                padding-bottom: 80px;
+                /* Adjust this value to match the height of your footer */
+            }
+        </style>
+</head>
+
+<body class="container">
+
+    <header class="fixed top-0 left-0 w-full bg-white z-50 shadow">
+        <%- include('../partials/header'); %>
+    </header>
+
+    <main class="pb-20">
+        <div class="jumbotron">
+            <div class="w-full ">
+                <p class="text-xl font-semibold text-center text-green-600 drop-shadow-lg">Chi tiết đơn hàng</p>
+                <iframe src="<%= link%>" frameborder="0" width="600" height="400" class="mx-auto mt-4"></iframe>
+                <div class="flex flex-row justify-center items-center space-x-4 mt-[2rem]">
+                    <div>
+                        <p class=".data"><span class="text-md font-bold mr-3">Mã hóa đơn:</span>
+                            <%= content.orderCode%>
+                        </p>
+                        <p class=".data"><span class="text-md font-bold mr-3">Giá tiền:</span>
+                            <%= content.amount%>
+                        </p>
+                        <p class=".data"><span class="text-md font-bold mr-3">Số tiền đã trả:</span>
+                            <%= content.amountPaid%>
+                        </p>
+                        <p class=".data"><span class="text-md font-bold mr-3">Số tiền còn thiếu:</span>
+                            <%= content.amountRemaining%>
+                        </p>
+                        <p class=".data"><span class="text-md font-bold mr-3">Trạng thái đơn hàng:</span><span
+                                class="<% if (content.status === 'CANCELLED') { %>bg-red-600 border-2 border-red-400 p-1 rounded-lg text-white<% } else if (content.status === 'PAID') { %>bg-green-600 border-2 border-green-400 p-1 rounded-lg text-white<% } else if (content.status === 'EXPIRED') { %>bg-yellow-600 border-2 border-yellow-400 p-1 rounded-lg text-white<% } else if (content.status === 'PENDING') { %>bg-purple-600 border-2 border-purple-400 p-1 rounded-lg text-white<% } %>">
+                                <%= content.status%>
+                            </span></p>
+                        <p class=".data"><span class="text-md font-bold mr-3">Lý do hủy đơn:</span>
+                            <%= content.cancellationReason%>
+                        </p>
+                    </div>
+                    <div>
+                        <p>aaa</p>
+                    </div>
+                </div>
+                <div class="flex justify-center mt-2 space-x-4">
+                    <% if (content.status==='PENDING' ) {%>
+                        <button class="p-2 border-2 border-black rounded-md bg-green-600 text-white"><a href="/bill">Trở
+                                về</a></button>
+                        <button class="p-2 border-2 border-black rounded-md bg-red-400">Hủy đơn</button>
+                        <%} else if (content.status==='PAID' ) {%>
+                            <button class="p-2 border-2 border-black rounded-md bg-green-600 text-white"><a
+                                    href="/bill">Trở
+                                    về</a></button>
+                            <button
+                                class="p-2 border-2 border-black rounded-md bg-green-600 text-white"><a
+                                    href="<%= link%>">Link Download file</a></button>
+                                <%} else {%>
+                                    <button class="p-2 border-2 border-black rounded-md bg-green-600 text-white"><a
+                                            href="/bill">Trở về</a></button>
+                                    <%}%>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full bg-gray-800 text-white py-4">
+        <%- include('../partials/footer'); %>
+    </footer>
+
+</body>
+
+</html>

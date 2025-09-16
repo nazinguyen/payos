@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head', {title: 'Bill | Toan Nguyen BookStore'}); %>
+    <style>
+    /* Adjust main content padding to compensate for fixed header */
+    main {
+      padding-top: 100px; /* Adjust this value to match the height of your header */
+      padding-bottom: 80px; /* Adjust this value to match the height of your footer */
+    }
+  </style>
+</head>
+<body class="container">
+
+<header class="fixed top-0 left-0 w-full bg-white z-50 shadow">
+  <%- include('../partials/header'); %>
+</header>
+
+<main class="pb-20">
+  <div class="jumbotron">
+    <div class="w-full h-screen flex justify-center items-center">
+      <button class="absolute p-2 border-2 border-black rounded-lg bg-green-500 text-white text-xl font-bold"><a href="<%= link%>">Link Download file</a></button>
+    </div>
+  </div>
+</main>
+
+<footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white py-4">
+  <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>

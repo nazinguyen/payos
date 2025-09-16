@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill | Toan Nguyen BookStore</title>
+    <!-- Include any necessary stylesheets or external CSS files here -->
+    <style>
+        /* Reset default margin and padding */
+        body, h1, p {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Set up some basic styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        main {
+            padding-top: 80px;
+            padding-bottom: 60px;
+            text-align: center;
+        }
+
+        .jumbotron {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+</header>
+
+<main>
+    <div class="jumbotron">
+        <h1>Đơn hàng đã bị hủy</h1>
+        <p><strong>Code:</strong> <%= code %></p>
+        <p><strong>ID:</strong> <%= id %></p>
+        <p><strong>Cancel:</strong> <%= cancel %></p>
+        <p><strong>Status:</strong> <%= status %></p>
+        <p><strong>Order Code:</strong> <%= orderCode %></p>
+    </div>
+</main>
+
+<footer>
+    <!-- Your footer content here -->
+</footer>
+
+</body>
+</html>

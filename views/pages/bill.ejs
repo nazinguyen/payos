@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head', {title: 'Bill | Toan Nguyen BookStore'}); %>
+    <style>
+    /* Adjust main content padding to compensate for fixed header */
+    main {
+      padding-top: 100px; /* Adjust this value to match the height of your header */
+      padding-bottom: 80px; /* Adjust this value to match the height of your footer */
+    }
+  </style>
+</head>
+<body class="container">
+
+<header class="fixed top-0 left-0 w-full bg-white z-50 shadow">
+  <%- include('../partials/header'); %>
+</header>
+
+<main class="pb-20">
+  <div class="jumbotron">
+    <div>
+      <p class="w-full text-xl font-semibold text-center">Quản Lý đơn hàng</p>
+      <% for(var i = 0; i < bills.length; i++) {%>
+        <p class="w-3/5 my-4 mx-auto p-3 border-2 border-black rounded-md bg-teal-600 hover:bg-teal-800 active:bg-teal-400"><a href="/bill/<%= bills[i].orderCode %>">Hóa đơn số: <%= bills[i].orderCode %></a></p>
+        
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white py-4">
+  <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../partials/head', {title: 'Cart | Toan Nguyen BookStore' }); %>
+    <style>
+      /* Adjust main content padding to compensate for fixed header */
+      main {
+        padding-top: 100px;
+        /* Adjust this value to match the height of your header */
+        padding-bottom: 80px;
+        /* Adjust this value to match the height of your footer */
+      }
+
+      th,
+      td {
+        border-color: black;
+      }
+    </style>
+    <script>
+
+    </script>
+</head>
+
+<body class="container">
+
+  <header class="fixed top-0 left-0 w-full bg-white z-50 shadow">
+    <%- include('../partials/header'); %>
+  </header>
+
+  <main class="pb-20">
+    <div class="jumbotron">
+      <div class="flex items-center justify-center flex-col space-y-4 w-4/5 mx-auto">
+        <p class="mt-[1rem] text-2xl font-extrabold text-blue-600 drop-shadow-lg">Giỏ hàng của bạn</p>
+        <div class="flex flex-col w-full space-y-4">
+          <table id="cartTable" class="border-2 mt-4">
+            <thead class="border-2">
+              <tr>
+                <th class="border-2 p-4">Số lượng</th>
+                <th class="border-2 p-4">Tên sản phẩm</th>
+                <th class="border-2 p-4">Giá tiền</th>
+                <th class="border-2 p-4">Actions</th>
+              </tr>
+            </thead>
+            <!-- get from cookie quatity, name, amount -->
+            <tbody></tbody>
+          </table>
+          <div class="flex justify-end mr-[2rem]">
+            <button id="btn-payment"
+              class="w-[max-content] mt-2 border-2 rounded-xl border-red-900 p-2 text-white bg-red-600 hover:bg-red-400 active:bg-red-700 ">Thanh
+              toán</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Function to get the cart data from the cookie
+    function getCartCookie() {
+      const cookieValue = document.cookie.split('; ').find(row => row.startsWith('cart='));
+      return cookieValue ? JSON.parse(cookieValue.split('=')[1]) : [];
+    }
+
+    // Function to display cart items in the table
+    function displayCartItems() {
+      const cartData = getCartCookie();
+      const $tableBody = $('#cartTable tbody');
+
+      // Clear existing table rows
+      $tableBody.empty();
+
+      // Iterate over cart items and add rows to the table
+      $.each(cartData, function (index, item) {
+        const $row = $('<tr>').appendTo($tableBody);
+        $row.append($('<td class="border-2 p-4 ">').text(item.quantity));
+        $row.append($('<td class="border-2 p-4">').text(item.productName));
+        $row.append($('<td class="border-2 p-4">').text(item.amount));
+        const $actionsCell = $('<td class="border-2 p-4 text-center">').appendTo($row);
+        $actionsCell.append('<button class="btn-remove" data-index="' + index + '"><img src="/trash.svg" class="w-[30px] h-[30px]"/></button>');
+        $actionsCell.append('<button class="btn-subtract" data-index="' + index + '"><img src="/substract.svg" class="w-[30px] h-[30px]"/></button>');
+      });
+    }
+
+    // Call displayCartItems function when the page is loaded
+    $(document).ready(function () {
+      displayCartItems();
+
+      // Event listener for remove button
+      $('#cartTable').on('click', '.btn-remove', function () {
+        const index = $(this).data('index');
+        const cartData = getCartCookie();
+        cartData.splice(index, 1); // Remove item from array
+        document.cookie = 'cart=' + JSON.stringify(cartData); // Update cookie
+        alert('Bạn đã bỏ mặt hàng này!');
+        displayCartItems(); // Re-display cart items
+      });
+
+      // Event listener for subtract button
+      $('#cartTable').on('click', '.btn-subtract', function () {
+        const index = $(this).data('index');
+        const cartData = getCartCookie();
+        if (cartData[index].quantity > 1) {
+          cartData[index].quantity--; // Subtract quantity
+          document.cookie = 'cart=' + JSON.stringify(cartData); // Update cookie
+          alert('Bạn đã bỏ giảm 1!')
+          displayCartItems(); // Re-display cart items
+        } else {
+          alert('Vui lòng bỏ sản phẩm');
+        }
+      });
+      $('#btn-payment').on('click', function () {
+        const cartData = getCartCookie();
+        let items = [];
+        $.each(cartData, function (idx, item) {
+          items.push({ productId: item.productId, quantity: item.quantity });
+        });
+        $.ajax({
+          url: '/api/payment', // Specify the URL for the POST request
+          method: 'POST', // Set the HTTP method to POST
+          contentType: 'application/json',
+          data: JSON.stringify({
+            description: 'Test - caso interview',
+            items: items, // [{productId: item.productId, quantity: item.quantity}]
+            buyerName: 'Toan Nguyen',
+            buyerEmail: 'minhtoanaglx@gmail.com',
+            buyerPhone: '0392043403',
+            buyerAddress: 'KTX khu A, Linh Trung, Thu Duc'
+          }),
+          success: function (response) {
+            // Handle the successful response here
+            window.open(response.checkoutUrl, '_blank');
+            console.log('Success:', response);
+          },
+          error: function (xhr, status, error) {
+            // Handle errors here
+            alert('have error when sending request');
+            console.error('Error:', error);
+          }
+        });
+      });
+    });
+  </script>
+  <footer class="absolute bottom-0 w-full bg-gray-800 text-white py-4">
+    <%- include('../partials/footer'); %>
+  </footer>
+
+</body>
+
+</html>
