@@ -3,6 +3,9 @@ const router = express.Router();
 const PaymentController = require('../controller/paymentController');
 const { rateLimiter } = require('../middleware/security');
 
+// Show payment page
+router.get('/', PaymentController.showPaymentPage);
+
 // Get available payment methods
 router.get('/methods', PaymentController.getPaymentMethods);
 
