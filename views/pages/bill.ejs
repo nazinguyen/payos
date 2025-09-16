@@ -3,12 +3,26 @@
 <head>
     <%- include('../partials/head', {title: 'Bill | Toan Nguyen BookStore'}); %>
     <style>
-    /* Adjust main content padding to compensate for fixed header */
     main {
-      padding-top: 100px; /* Adjust this value to match the height of your header */
-      padding-bottom: 80px; /* Adjust this value to match the height of your footer */
+      padding-top: 100px;
+      padding-bottom: 80px;
+    }
+    .payment-method {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .payment-method:hover {
+      background-color: #f5f5f5;
+    }
+    .payment-method.selected {
+      border-color: #4CAF50;
+      background-color: #e8f5e9;
     }
   </style>
+  <script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>&currency=USD"></script>
 </head>
 <body class="container">
 
@@ -17,13 +31,66 @@
 </header>
 
 <main class="pb-20">
-  <div class="jumbotron">
-    <div>
-      <p class="w-full text-xl font-semibold text-center">Quản Lý đơn hàng</p>
-      <% for(var i = 0; i < bills.length; i++) {%>
-        <p class="w-3/5 my-4 mx-auto p-3 border-2 border-black rounded-md bg-teal-600 hover:bg-teal-800 active:bg-teal-400"><a href="/bill/<%= bills[i].orderCode %>">Hóa đơn số: <%= bills[i].orderCode %></a></p>
+  <div class="max-w-4xl mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-6 text-center">Checkout</h1>
+
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+        <div class="border-t border-b py-4">
+          <% let total = 0; %>
+          <% cartItems.forEach(item => { %>
+            <div class="flex justify-between mb-2">
+              <span><%= item.name %> x <%= item.quantity %></span>
+              <span>₫<%= (item.price * item.quantity).toLocaleString() %></span>
+            </div>
+            <% total += item.price * item.quantity; %>
+          <% }); %>
+        </div>
+        <div class="flex justify-between mt-4 text-lg font-bold">
+          <span>Total:</span>
+          <span>₫<%= total.toLocaleString() %></span>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-4">Select Payment Method</h2>
         
-      <% } %>
+        <!-- VNPay Option -->
+        <div class="payment-method mb-4" onclick="selectPaymentMethod('vnpay')">
+          <div class="flex items-center">
+            <input type="radio" name="payment" id="vnpay" class="mr-2">
+            <label for="vnpay" class="flex-grow">
+              <span class="font-medium">VNPay</span>
+              <p class="text-sm text-gray-600">Pay with VNPay (Vietnamese Cards)</p>
+            </label>
+          </div>
+        </div>
+
+        <!-- PayPal Option -->
+        <div class="payment-method" onclick="selectPaymentMethod('paypal')">
+          <div class="flex items-center">
+            <input type="radio" name="payment" id="paypal" class="mr-2">
+            <label for="paypal" class="flex-grow">
+              <span class="font-medium">PayPal</span>
+              <p class="text-sm text-gray-600">Pay with PayPal or Credit Card</p>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Buttons -->
+      <div class="text-center" id="payment-buttons">
+        <!-- VNPay Button -->
+        <button id="vnpay-button" 
+                style="display: none;"
+                class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors">
+          Pay with VNPay
+        </button>
+
+        <!-- PayPal Button Container -->
+        <div id="paypal-button-container" style="display: none;"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -31,6 +98,93 @@
 <footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white py-4">
   <%- include('../partials/footer'); %>
 </footer>
+
+<script>
+const billId = '<%= bill._id %>';
+
+function selectPaymentMethod(method) {
+  // Update radio buttons
+  document.querySelectorAll('input[name="payment"]').forEach(input => {
+    input.checked = input.id === method;
+  });
+  
+  // Update payment buttons visibility
+  document.getElementById('vnpay-button').style.display = method === 'vnpay' ? 'inline-block' : 'none';
+  document.getElementById('paypal-button-container').style.display = method === 'paypal' ? 'block' : 'none';
+  
+  // Update styling
+  document.querySelectorAll('.payment-method').forEach(div => {
+    div.classList.toggle('selected', div.querySelector(`#${method}`));
+  });
+}
+
+// VNPay payment handler
+document.getElementById('vnpay-button').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/vnpay/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ billId })
+    });
+    
+    const result = await response.json();
+    if (result.code === '00') {
+      window.location.href = result.data;
+    } else {
+      alert('Payment creation failed. Please try again.');
+    }
+  } catch (error) {
+    console.error('Payment error:', error);
+    alert('Payment failed. Please try again.');
+  }
+});
+
+// PayPal button integration
+paypal.Buttons({
+  createOrder: async () => {
+    try {
+      const response = await fetch('/paypal/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ billId })
+      });
+      
+      const result = await response.json();
+      return result.orderID;
+    } catch (error) {
+      console.error('PayPal create order error:', error);
+      throw error;
+    }
+  },
+  onApprove: async (data) => {
+    try {
+      const response = await fetch('/paypal/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderID: data.orderID
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        window.location.href = '/success';
+      } else {
+        alert('Payment failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('PayPal capture error:', error);
+      alert('Payment failed. Please try again.');
+    }
+  }
+}).render('#paypal-button-container');
+</script>
 
 </body>
 </html>

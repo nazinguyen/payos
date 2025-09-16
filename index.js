@@ -1,15 +1,15 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const PayOS = require('@payos/node');
 const path = require('path');
 const connectDB = require('./setupdb');
 const { securityMiddleware } = require('./middleware/security');
+const Bill = require('./models/billSchema');
 
 // Import routes
-const paymentRoute = require('./routes/paymentRoute');
-const paypalRoute = require('./routes/paypalRoute');
-const vnpayRoute = require('./routes/vnpayRoute');
-const cartRoute = require('./routes/cartRoute');
+const paymentRoutes = require('./routes/paymentRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const vnpayRoutes = require('./routes/vnpayRoute');
+const paypalRoutes = require('./routes/paypalRoute');
 
 // Load environment variables
 require('dotenv').config();

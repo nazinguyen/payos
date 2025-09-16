@@ -1,82 +1,110 @@
-require('dotenv').config();
-const PayOS = require("@payos/node");
-// create obj payos
-const payos = new PayOS(process.env.CLIENT_ID, process.env.API_KEY, process.env.CHECKSUM_KEY);
 const Bill = require('../models/billSchema');
 const Product = require('../models/productSchema');
-const crypto = require("crypto");
-const returnUrl = `http://localhost:${process.env.PORT || 8080}/return`;
-const cancelUrl = `http://localhost:${process.env.PORT || 8080}/cancel`;
+const VNPayService = require('../services/vnpayService');
+const PayPalService = require('../services/paypalService');
 
-const processItems = async (items) => {
-  try {
-    let retn = [];
-    let amount = 0;
-    for (let item of items) {
-      const product = await Product.findOne({ productId: item.productId });
-      if (product) {
-        retn.push({
-          name: product.productName,
-          quantity: item.quantity,
-          price: product.amount
-        });
-        amount += product.amount * item.quantity;
-      }
+const PaymentController = {
+    async showPaymentPage(req, res) {
+        try {
+            const cartItems = req.session.cart || [];
+            if (cartItems.length === 0) {
+                return res.redirect('/cart');
+            }
+
+            const productDetails = await Promise.all(
+                cartItems.map(async (item) => {
+                    const product = await Product.findById(item.productId);
+                    return {
+                        name: product.name,
+                        price: product.price,
+                        quantity: item.quantity
+                    };
+                })
+            );
+
+            const totalAmount = productDetails.reduce(
+                (sum, item) => sum + item.price * item.quantity,
+                0
+            );
+
+            const bill = new Bill({
+                items: productDetails,
+                amount: totalAmount,
+                status: 'PENDING'
+            });
+            await bill.save();
+
+            res.render('pages/bill', {
+                bill,
+                cartItems: productDetails
+            });
+        } catch (error) {
+            console.error('Payment page error:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    },
+
+    async processVNPayPayment(req, res) {
+        try {
+            const billId = req.body.billId;
+            const bill = await Bill.findById(billId);
+            if (!bill) {
+                return res.status(404).send('Bill not found');
+            }
+
+            const result = await VNPayService.createPayment(bill);
+            res.json(result);
+        } catch (error) {
+            console.error('VNPay payment error:', error);
+            res.status(500).send('Payment processing failed');
+        }
+    },
+
+    async processPayPalPayment(req, res) {
+        try {
+            const billId = req.body.billId;
+            const bill = await Bill.findById(billId);
+            if (!bill) {
+                return res.status(404).send('Bill not found');
+            }
+
+            const result = await PayPalService.createPayment(bill);
+            res.json(result);
+        } catch (error) {
+            console.error('PayPal payment error:', error);
+            res.status(500).send('Payment processing failed');
+        }
+    },
+
+    async handleVNPayCallback(req, res) {
+        try {
+            const result = await VNPayService.handleCallback(req.query);
+            if (result.success) {
+                req.session.cart = [];
+                res.redirect('/success');
+            } else {
+                res.redirect('/cancel');
+            }
+        } catch (error) {
+            console.error('VNPay callback error:', error);
+            res.redirect('/cancel');
+        }
+    },
+
+    async handlePayPalCallback(req, res) {
+        try {
+            const result = await PayPalService.handleCallback(req.body);
+            if (result.success) {
+                req.session.cart = [];
+                res.json({ success: true });
+            } else {
+                res.json({ success: false });
+            }
+        } catch (error) {
+            console.error('PayPal callback error:', error);
+            res.status(500).json({ success: false });
+        }
     }
-    return [retn, amount];
-  } catch (err) {
-    console.log(err);
-    throw err; // Re-throw the error to handle it in the calling function
-  }
 };
 
-const payment = async (req, res) => {
-  try {
-    const {
-      description,
-      items,
-      buyerName,
-      buyerEmail,
-      buyerPhone,
-      buyerAddress,
-    } = req.body;
-    let orderCode;
-    while (true) {
-      const genId = parseInt(crypto.randomBytes(2).toString("hex"), 16);
-      const existingBill = await Bill.findOne({ orderCode: genId });
-      if (!existingBill) {
-        // If it doesn't exist, assign orderCode and break the loop
-        orderCode = genId;
-        console.log('genOrderCodee successfull! - ' + orderCode);
-        break;
-      }
-    }
-    console.log(items);
-    const expiredAt = Math.floor(Date.now() / 1000) + 60 * 30; // 30min
-    const calcItems = await processItems(items);
-    const requestData = {
-      orderCode,
-      amount: calcItems[1],
-      description,
-      cancelUrl,
-      returnUrl,
-      items: calcItems[0],
-      buyerName,
-      buyerEmail,
-      buyerPhone,
-      buyerAddress,
-      expiredAt
-    };
-
-    // console.log(requestData);
-    const pos = await payos.createPaymentLink(requestData);
-    // Save the new orderCode in the database
-    await Bill.create({ orderCode, link: pos.checkoutUrl});
-    res.status(200).json(pos);
-  } catch (error) {
-    console.error('Error creating payment link:', error);
-    res.status(500).send('Internal Server Error');
-  }
-}
-
-module.exports = { payment }
+module.exports = PaymentController;

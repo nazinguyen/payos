@@ -26,4 +26,3 @@
   "buildCommand": "npm install",
   "outputDirectory": "public"
 }
-}

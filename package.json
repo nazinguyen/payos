@@ -1,7 +1,7 @@
 {
-  "name": "payos",
+  "name": "payment-integration",
   "version": "1.0.0",
-  "description": "Payment integration with PayOS and PayPal",
+  "description": "Payment integration with VNPay and PayPal",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js --ignore 'public/*'",
@@ -12,7 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@payos/node": "^1.0.6",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/paypal-js": "^5.1.6",
     "cookie-parser": "^1.4.6",

@@ -1,20 +1,16 @@
-const { Router } = require('express');
-const router = Router();
-const { payment } = require('../controller/paymentController');
-const PayOS = require("@payos/node");
-// create obj payos
-const payos = new PayOS(process.env.CLIENT_ID, process.env.API_KEY, process.env.CHECKSUM_KEY);
+const express = require('express');
+const router = express.Router();
+const PaymentController = require('../controller/paymentController');
 
-router.route('/payment').post(payment).get(async (req, res) => {
-  res.send('hello world');
-});
-router.route('/del/:code').post(async (req, res) => {
-  try{
-    await payos.cancelPaymentLink(req.params.code, "test - for caso interview"); 
-    console.log('del - successfull');
-    res.status(200).send('successfull - del');
-  }catch(err){
-    res.status(500).send('error - when del');
-  }
-})
+// Show payment page
+router.get('/payment', PaymentController.showPaymentPage);
+
+// Process payments
+router.post('/vnpay/create', PaymentController.processVNPayPayment);
+router.post('/paypal/create', PaymentController.processPayPalPayment);
+
+// Handle callbacks
+router.get('/vnpay/callback', PaymentController.handleVNPayCallback);
+router.post('/paypal/callback', PaymentController.handlePayPalCallback);
+
 module.exports = router;
